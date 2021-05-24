@@ -766,14 +766,6 @@ FW_SET hvDichotomicSchemeTime2D(
                 result = hvDichotomicSchemeNum2D(data);
                 break;
             }
-            case FW_ND: {
-                result = hvDichotomicSchemeAllND(data);
-                break;
-            }
-            case FW_ND_PARALLEL: {
-                result = hvDichotomicSchemeAllNDP(data);
-                break;
-            }
             default:
                 break;
         }
