@@ -17,14 +17,12 @@ struct problemVariables {
     std::vector<SCIP_CONS *> cons7;               /**< y{i>= y{ii} + y{ij} - 1 for all i,j in {1.n}, i<j */
 };
 
-void readInput(FW_STRUCT *data) {
+void readInput(HVS *hvs) {
     SCIP_Real aux;
 
-    FW_POINT refPoint;
+    HVS_Point refPoint;
 
-    setProblemDS(data, new problemVariables());
-
-    struct problemVariables* pVars = ((problemVariables*)(getProblemDS(data)));
+    struct problemVariables* pVars = ((problemVariables*)(HVSgetDataStructure(hvs)));
 
     std::cin >> pVars->numElems;
 
@@ -45,16 +43,16 @@ void readInput(FW_STRUCT *data) {
     std::cin >> aux;
     refPoint.emplace_back(aux);
 
-    setInitialRefPoint(data, refPoint);
+    HVSsetIRefPoint(hvs, refPoint);
 
     std::cin >> pVars->maxElems;
 }
 
-SCIP_RETCODE initProblem(FW_STRUCT *data) {
+SCIP_RETCODE initProblem(HVS *hvs) {
 
-    struct problemVariables* pVars = ((problemVariables*)(getProblemDS(data)));
+    struct problemVariables* pVars = ((problemVariables*)(HVSgetDataStructure(hvs)));
 
-    FW_POINT iRefPoint = getInitialRefPoint(data);
+    HVS_Point iRefPoint = HVSgetIRefPoint(hvs);
 
     /* init and calculate matrix Q for initial reference point */
     pVars->matrixQ.resize(pVars->numElems);
@@ -62,7 +60,7 @@ SCIP_RETCODE initProblem(FW_STRUCT *data) {
         pVars->matrixQ[i].resize(pVars->numElems);
         for(int j = 0; j < pVars->numElems; j++) {
             if(i == j){
-                pVars->matrixQ[i][j] = pVars->arrayA[i] * pVars->arrayB[j] - (iRefPoint[FW_Y] * pVars->arrayA[i] + iRefPoint[FW_X] * pVars->arrayB[j]) + iRefPoint[FW_X] * iRefPoint[FW_Y];
+                pVars->matrixQ[i][j] = pVars->arrayA[i] * pVars->arrayB[j] - (iRefPoint[HVS_Y] * pVars->arrayA[i] + iRefPoint[HVS_X] * pVars->arrayB[j]) + iRefPoint[HVS_X] * iRefPoint[HVS_Y];
             } else {
                 pVars->matrixQ[i][j] = pVars->arrayA[i] * pVars->arrayB[j];
             }
@@ -81,6 +79,9 @@ SCIP_RETCODE initProblem(FW_STRUCT *data) {
     /* set objective function direction */
     SCIP_CALL(SCIPsetObjsense(pVars->scip, SCIP_OBJSENSE_MAXIMIZE));
 
+    // SCIPsetMessagehdlrLogfile(pVars->scip, "filename"); //for printing to file
+    SCIPsetMessagehdlrQuiet(pVars->scip, true); //for no output
+
     /* init and add binary variable matrixY to scip */
     pVars->matrixY.resize(pVars->numElems * pVars->numElems + 1);
     for (int i = 0; i < pVars->numElems; i++) {
@@ -89,7 +90,7 @@ SCIP_RETCODE initProblem(FW_STRUCT *data) {
             SCIP_CALL(SCIPaddVar(pVars->scip, pVars->matrixY.at(pVars->numElems * i + j)));
         }
     }
-    SCIP_CALL(SCIPcreateVarBasic(pVars->scip, &(pVars->matrixY.back()), ("r1r2"), 1.0, 1.0, iRefPoint[FW_X] * iRefPoint[FW_Y], SCIP_VARTYPE_BINARY));
+    SCIP_CALL(SCIPcreateVarBasic(pVars->scip, &(pVars->matrixY.back()), ("r1r2"), 1.0, 1.0, iRefPoint[HVS_X] * iRefPoint[HVS_Y], SCIP_VARTYPE_BINARY));
     SCIP_CALL(SCIPaddVar(pVars->scip, pVars->matrixY.back()));
 
     /* init and add all constraints to scip */
@@ -98,8 +99,8 @@ SCIP_RETCODE initProblem(FW_STRUCT *data) {
     pVars->cons6.resize(pVars->numElems * pVars->numElems - pVars->numElems, nullptr);
     pVars->cons7.resize((int)((pVars->numElems - 1) * (pVars->numElems)) / 2, nullptr);
 
-    SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons1, "cons1", 0, nullptr, nullptr, iRefPoint[FW_X], FW_INF));
-    SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons2, "cons2", 0, nullptr, nullptr, iRefPoint[FW_Y], FW_INF));
+    SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons1, "cons1", 0, nullptr, nullptr, iRefPoint[HVS_X], HVS_Inf));
+    SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons2, "cons2", 0, nullptr, nullptr, iRefPoint[HVS_Y], HVS_Inf));
     SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons3, "cons3", 0, nullptr, nullptr, pVars->maxElems, pVars->maxElems));
 
     for (int i = 0; i < pVars->numElems; i++) {
@@ -109,7 +110,7 @@ SCIP_RETCODE initProblem(FW_STRUCT *data) {
     }
 
     for (int j = 0; j < pVars->numElems; j++) {
-        SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons4.at(j), ("cons4_" + std::to_string(j + 1)).c_str(), 0, nullptr, nullptr, -FW_INF, 0));
+        SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons4.at(j), ("cons4_" + std::to_string(j + 1)).c_str(), 0, nullptr, nullptr, -HVS_Inf, 0));
         for (int i = 0; i < pVars->numElems; i++) {
             if (i != j) {
                 SCIP_CALL(SCIPaddCoefLinear(pVars->scip, pVars->cons4.at(j), pVars->matrixY.at(pVars->numElems * i + j), 1));
@@ -124,7 +125,7 @@ SCIP_RETCODE initProblem(FW_STRUCT *data) {
             SCIP_CALL(SCIPaddCoefLinear(pVars->scip, pVars->cons5.at(k), pVars->matrixY.at(i * pVars->numElems + j), 1));
             SCIP_CALL(SCIPaddCoefLinear(pVars->scip, pVars->cons5.at(k), pVars->matrixY.at(j * pVars->numElems + i), -1));
 
-            SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons7.at(k), ("cons7_" + std::to_string(k + 1)).c_str(), 0, nullptr, nullptr, -1, FW_INF));
+            SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons7.at(k), ("cons7_" + std::to_string(k + 1)).c_str(), 0, nullptr, nullptr, -1, HVS_Inf));
             SCIP_CALL(SCIPaddCoefLinear(pVars->scip, pVars->cons7.at(k), pVars->matrixY.at(i * pVars->numElems + j), 1));
             SCIP_CALL(SCIPaddCoefLinear(pVars->scip, pVars->cons7.at(k), pVars->matrixY.at(i * pVars->numElems + i), -1));
             SCIP_CALL(SCIPaddCoefLinear(pVars->scip, pVars->cons7.at(k), pVars->matrixY.at(j * pVars->numElems + j), -1));
@@ -136,7 +137,7 @@ SCIP_RETCODE initProblem(FW_STRUCT *data) {
     for (int i = 0; i < pVars->numElems; i++) {
         for (int j = 0; j < pVars->numElems; j++) {
             if (i != j) {
-                SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons6.at(k), ("cons6_" + std::to_string(k + 1)).c_str(), 0, nullptr, nullptr, -FW_INF, 0));
+                SCIP_CALL(SCIPcreateConsBasicLinear(pVars->scip, &pVars->cons6.at(k), ("cons6_" + std::to_string(k + 1)).c_str(), 0, nullptr, nullptr, -HVS_Inf, 0));
                 SCIP_CALL(SCIPaddCoefLinear(pVars->scip, pVars->cons6.at(k), pVars->matrixY.at(i * pVars->numElems + j), 1));
                 SCIP_CALL(SCIPaddCoefLinear(pVars->scip, pVars->cons6.at(k), pVars->matrixY.at(i * pVars->numElems + i), -1));
                 k++;
@@ -168,39 +169,31 @@ SCIP_RETCODE initProblem(FW_STRUCT *data) {
     return SCIP_OKAY;
 }
 
-FW_POINT solveProblem(FW_STRUCT *data, FW_POINT refPoint) {
+HVS_Point solveProblem(HVS *hvs, HVS_Point refPoint) {
 
-    struct problemVariables* pVars = ((problemVariables*)(getProblemDS(data)));
+    struct problemVariables* pVars = ((problemVariables*)(HVSgetDataStructure(hvs)));
 
-    FW_POINT calculatedPoint;
+    HVS_Point calculatedPoint;
 
     SCIP *scipCp = nullptr;
-
-    // std::lock_guard<std::mutex> lock(data->m);
-    //data->m.lock();
-    FW_MutexLock(data);
 
     /* creating the SCIP that will be used to solve the problem  */
     SCIPcreate(&scipCp);
 
     /* updating matrixQ in position (i,i) due to new reference point  */
     for(int i = 0; i < pVars->numElems; i++) {
-        pVars->matrixQ[i][i] = pVars->arrayA[i] * pVars->arrayB[i] - (refPoint[FW_Y] * pVars->arrayA[i] + refPoint[FW_X] * pVars->arrayB[i]);
+        pVars->matrixQ[i][i] = pVars->arrayA[i] * pVars->arrayB[i] - (refPoint[HVS_Y] * pVars->arrayA[i] + refPoint[HVS_X] * pVars->arrayB[i]);
         SCIPchgVarObj(pVars->scip, pVars->matrixY.at(pVars->numElems * i + i), pVars->matrixQ[i][i]);
     }
     /* updating r1r2 due to new reference point */
-    SCIPchgVarObj(pVars->scip, pVars->matrixY.back(), refPoint[FW_X] * refPoint[FW_Y]);
+    SCIPchgVarObj(pVars->scip, pVars->matrixY.back(), refPoint[HVS_X] * refPoint[HVS_Y]);
 
     /* updating constraints due to new reference point  */
-    (SCIPchgLhsLinear(pVars->scip, pVars->cons1, refPoint[FW_X]));
-    (SCIPchgLhsLinear(pVars->scip, pVars->cons2, refPoint[FW_Y]));
+    (SCIPchgLhsLinear(pVars->scip, pVars->cons1, refPoint[HVS_X]));
+    (SCIPchgLhsLinear(pVars->scip, pVars->cons2, refPoint[HVS_Y]));
 
     /* copying the problem to the new SCIP env  */
-    (SCIPcopy(pVars->scip, scipCp, nullptr, nullptr, (std::to_string(refPoint[FW_X]) + "," + std::to_string(refPoint[FW_Y])).c_str(), 1, 1, 0, 1, nullptr));
-
-    // std::lock_guard<std::mutex> unlock(data->m);
-    //data->m.unlock();
-    FW_MutexUnlock(data);
+    (SCIPcopy(pVars->scip, scipCp, nullptr, nullptr, (std::to_string(refPoint[HVS_X]) + "," + std::to_string(refPoint[HVS_Y])).c_str(), 1, 1, 0, 1, nullptr));
 
     /* solving the problem  */
     (SCIPsolve(scipCp));
@@ -223,8 +216,7 @@ FW_POINT solveProblem(FW_STRUCT *data, FW_POINT refPoint) {
     }
 
     /* extracting the value of the solution  */
-
-    calculatedPoint = {hvX, hvY, 0, refPoint[FW_X], refPoint[FW_Y]};
+    calculatedPoint = {hvX, hvY, 0, refPoint[HVS_X], refPoint[HVS_Y]};
 
     free(results);
 
@@ -234,9 +226,9 @@ FW_POINT solveProblem(FW_STRUCT *data, FW_POINT refPoint) {
     return calculatedPoint;
 }
 
-SCIP_RETCODE closeProblem(FW_STRUCT *data) {
+SCIP_RETCODE closeProblem(HVS *hvs) {
 
-    struct problemVariables* pVars = ((problemVariables*)(getProblemDS(data)));
+    struct problemVariables* pVars = ((problemVariables*)(HVSgetDataStructure(hvs)));
 
     /* freeing the variables */
     for (int i = 0; i < pVars->matrixY.size(); i++) {
@@ -273,23 +265,22 @@ SCIP_RETCODE closeProblem(FW_STRUCT *data) {
 
 int main(int argc, const char *argv[]) {
 
-    FW_STRUCT *data;
+    HVS *hvs;
 
-    startFramework(&data);
+    HVSstart(&hvs);
 
-    setInputProblem(data, readInput);
-    setInitProblem(data, initProblem);
-    setSolveProblem(data, solveProblem);
-    setCloseProblem(data, closeProblem);
-    setNumSols(data, 50);
-    setVerbose(data, true);
-    setPrintProblem(data, true);
-    auto start = FW_TIMENOW;
-    FW_SET setS = hvDichotomicScheme(FW_2D_PARALLEL, data);
-    auto stop = FW_TIMENOW;
-    std::cout << std::chrono::duration_cast<FW_MSEC>(stop - start).count() << std::endl;
-    printResult(setS);
-    closeFramework(&data);
+    HVSsetInput(hvs, readInput);
+    HVSsetInit(hvs, initProblem);
+    HVSsetSolve(hvs, solveProblem);
+    HVSsetClose(hvs, closeProblem);
+    HVSsetNumNdPoints(hvs, 5);
+    HVSsetVerbose(hvs, true);
+    HVSsetDataStructure(hvs, new problemVariables());
+    HVSsolve(HVS_2D_NUM, hvs);
+    HVS_Set results = HVSgetSols(hvs);
+    HVSprintSet(results);
+
+    HVSfree(&hvs);
 
     return 0;
 }
