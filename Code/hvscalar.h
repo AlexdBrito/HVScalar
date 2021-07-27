@@ -2,10 +2,6 @@
 #include <scip/scip.h>
 #include <scip/scipdefplugins.h>
 #include "scip/struct_misc.h"
-#include <memory>
-#include <thread>
-#include <future>
-#include <utility>
 
 #ifndef HVScalar
 #define HVScalar

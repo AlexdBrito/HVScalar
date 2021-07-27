@@ -1,4 +1,4 @@
-#include "hvscalar.h"
+#include "../Code/hvscalar.h"
 
 struct problemVariables {
     int numElems;                                 /**< Number of elements for each objective */
@@ -46,6 +46,8 @@ void readInput(HVS *hvs) {
     HVSsetIRefPoint(hvs, refPoint);
 
     std::cin >> pVars->maxElems;
+
+    HVSsetNumNdPoints(hvs, pVars->maxElems);
 }
 
 SCIP_RETCODE initProblem(HVS *hvs) {
@@ -66,6 +68,7 @@ SCIP_RETCODE initProblem(HVS *hvs) {
             }
         }
     }
+
 
     /* init SCIP */
     SCIPcreate(&pVars->scip);
@@ -272,7 +275,6 @@ int main(int argc, const char *argv[]) {
     HVSsetInit(hvs, initProblem);
     HVSsetSolve(hvs, solveProblem);
     HVSsetClose(hvs, closeProblem);
-    HVSsetNumNdPoints(hvs, 5);
     HVSsetVerbose(hvs, true);
     HVSsetDataStructure(hvs, new problemVariables());
     HVSsolve(hvs, HVS_2D_NUM);

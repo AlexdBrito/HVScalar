@@ -1,20 +1,23 @@
-# HVScalar: A C++ framework for biobjective optimization
+# HVScalar: A C++ Dichotomic Search Framework for Solving Biobjective Combinatorial Optimization Problems
 
-This repository contains a C++ framework that implements a dichotomic search to solve any biobjective optimization problem that can be formulated in terms of hypervolume scalarization. The problem can be implemented using [SCIP Optimization Suite](https: * scipopt.org/#scipoptsuite) as a MILP solver or implemented as a dedicated problem.
-
-The framework is capable of finding and returning the complete set of nondominated solutions or a subset of the nondominated set with an approximation guarantee.
+This repository contains a C++ framework that implements a dichotomic search algorithm to solve any biobjective combinatorial optimization problem that can be formulated in terms of hypervolume scalarization as described in [Paquete et al. 2021](https://doi.org/10.1016/j.cor.2021.105349). It is capable of finding the complete set of nondominated points or a subset of it with an approximation guarantee. In the latter case, the size of the subset must be defined by the user. The framework allows to use [SCIP Optimization Suite](https:scipopt.org/#scipoptsuite) as a MILP solver for each hypervolume scalarization problem, but it can also use a dedicated algorithm. This work is based on Alexandre Brito's Master Thesis, which is available [here](/Example/UserManual/Thesis_Alexandre_Brito_2021.pdf)
 
 ## Usage
 
 The framework is currently provided as a single header file. In order to use it, you must copy `hvscalar.h`, include it in the `.cpp` files and follow the implementation instruction that are provided below.
 
-For an implementation example, see the [Example](/Example) folder.
+For an implementation example for a biobjective knapsack problem with a cardinality constraint, see the [Example](/Example) folder. An input example and the expected output are also provided. The example can be compiled with:
+```
+g++ Example/example.cpp Code/hvscalar.h -lscip -lpthread -std=c++14 -o hvscalar.out
+./hvscalar.out < Example/example.in
+```
 
 ## Overview of Available Functions
 
 The framework currently uses one structure, `HVS` to store all the necessary data. This structure holds information about all the user implemented functions and basic information about the problem such as the number of nondominated points to find, if set, the objective direction, either maximization or minimization, the initial reference point and the data structure created by the user. It is required as input by all the frameworks functions.
 
 We consider the following variables
+
 ```cpp
 #define HVS_Eps     1e-8                 /**< Epsilon value */
 #define HVS_Inf     1e+20                /**< Default value considered to be infinity */
@@ -109,10 +112,10 @@ void HVSsetClose(HVS, close);
 /** Sets the user implemented data structure for the problem
  * 
  *  Parameters:
- *    HVS               - An initialized HVS data structure
- *    problemVariables  - User implemented data structure that contains the problems variables
+ *    HVS   - An initialized HVS data structure
+ *    data  - User implemented data structure that contains the problems variables
  */ 
-void HVSsetDataStructure(HVS, problemVariables);
+void HVSsetDataStructure(HVS, data);
 ```
 
 ### HVSsetIRefPoint
@@ -254,3 +257,22 @@ void HVSprintSet(HVS_Set);
 <p align="center">
   <img src="Example/UserManual/FrameworkFlowDiagram.png">
 </p>
+
+A [`pdf` version of the user manual](Example/UserManual/UserManual.pdf) is also available.
+
+## Note
+
+If you plan to write a scientific paper describing research that made use of this program, I kindly ask you to mention that this software was used. The appropriate citation is:
+
+Alexandre Brito, An hypervolume dichotomic scheme for multiobjective optimization, MSc in Informatics Engineering, University of Coimbra, Portugal, 2021.
+
+as well as
+
+Luís Paquete, Britta Schulze, Michael Stiglmayr, and Ana C. Lourenço, Computing representations with hypervolume scalarizations, Computers & Operations Research, 2021
+[DOI](http://doi.org/10.1016/j.cor.2021.105349).
+
+I would also appreciate it if you would email adbrito@student.dei.uc.pt and paquete@dei.uc.pt with citations of papers referencing this work.
+
+## Acknowledgements
+
+This project was developed under a Research Initiation Grant, which was financed by national funds through FCT – Foundation for Science and Technology, I.P., in the scope of project CISUC – UID/CEC/00326/2020.
