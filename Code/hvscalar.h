@@ -6,7 +6,6 @@
 #include <thread>
 #include <future>
 #include <utility>
-#include "nondlib.hpp"
 
 #ifndef HVScalar
 #define HVScalar
@@ -19,16 +18,16 @@
 #define HVS_Eps          1e-8                                                  /**< Epsilon value */
 #define HVS_Inf          1e+20                                                 /**< default value considered to be infinity */
 #define HVS              struct HVSdata                                     /**< Framework main data structure */
-#define HVS_Point        std::vector<SCIP_Real>                                /**< A point */
+#define HVS_Point        std::vector<double>                                /**< A point */
 #define HVS_Set          std::set<std::shared_ptr<HVS_Point>, Comp2DSetS>      /**< A set of points */
 #define HVS_Solve        hvs->solve
 #define HVS_Verbose      hvs->verbose
 
-enum FW_ObjectiveDir {
+enum HVS_ObjectiveDir {
     HVS_MAX = 1,           /**< value that sets the problems objective as maximization */
     HVS_MIN = -1             /**< value that sets the problems objective as minimization */
 };
-enum FW_SolveType{
+enum HVS_SolveType{
     HVS_2D_ALL = 1001,     /**< value for solving a problem with 2 dimensions */
     HVS_2D_NUM,              /**< value for solving a problem with 2 dimensions considering a maximum number of points to find */
 };
@@ -48,7 +47,7 @@ struct Comp2DSetP {
 struct HVSdata{
     int numSols;                                          /**< Number of solutions to get on main while loop */
     bool verbose;                                         /**< Print additional information during solveing process */
-    FW_ObjectiveDir objectiveDir;                         /**< Objective direction for the user problem*/
+    HVS_ObjectiveDir objectiveDir;                         /**< Objective direction for the user problem*/
     HVS_Point iRefPoint;                                  /**< Initial reference point */
     HVS_Set result;                                       /**< Set containing the result of the dichotomic scheme*/
     void (*input) (HVS *hvs);                             /**< Function that reads the necessary input data for the problem */
@@ -124,7 +123,7 @@ void HVSsetClose(
     (hvs)->close = close;
 }
 
-/**
+/** Sets the objective direction of the problem
  *
  */
 void HVSsetObjectiveDir(
@@ -134,7 +133,7 @@ void HVSsetObjectiveDir(
     (hvs)->objectiveDir = objectiveDir;
 }
 
-/** Sets verbose mode according to the choice given
+/** Sets the verbosity mode 
  *
  *  @note Verbose mode outputs additional information during the solving process such as the points obtained from
  *        the subproblem, its hypervolume contribution and if the points was inserted in the list of points to use
@@ -143,22 +142,22 @@ void HVSsetObjectiveDir(
  */
 void HVSsetVerbose(
         HVS       *hvs,      /**< Default framework data structure */
-        bool            choice      /**< Boolean choice for the verbose mode */
+        bool      verbose    /**< Boolean choice for the verbosity mode */
 ){
-    (hvs)->verbose = choice;
+    (hvs)->verbose = verbose;
 }
 
-/** Sets the number of optimal points to calculate when using \ref HVSsolveNum()
+/** Sets the number of nondominated points to be calculated
  *
  */
 void HVSsetNumNdPoints(
         HVS       *hvs,          /**< Default framework data structure */
-        int       numNdPoints    /**< Number of optimal points to calculate */
+        int       numNdPoints    /**< Number of nondominated points to calculate */
 ){
     (hvs)->numSols = numNdPoints;
 }
 
-/** Sets the initial reference point to use for the solving process for 2D problems
+/** Sets the initial reference point to be used by the solving process
  *
  *
  */
@@ -179,7 +178,7 @@ HVS_Point HVSgetIRefPoint(
     return hvs->iRefPoint;
 }
 
-/** Obtain set set of solutions to the dichotomic scheme
+/** Obtain the set of solutions of the dichotomic scheme
  *
  * @return the initial reference point for the problem
  */
@@ -189,7 +188,7 @@ HVS_Set HVSgetSols(
     return hvs->result;
 }
 
-/** Sets the data structure for the problem
+/** Sets the user implemented data structure for the problem
  *
  */
 void HVSsetDataStructure(
@@ -199,7 +198,7 @@ void HVSsetDataStructure(
     hvs->problemVariables = problemVariables;
 }
 
-/** Obtain the data structure for the problem.
+/** Obtain the data structure of the problem.
  *  As the returned type is void*, it must be cast to the correct data structure type
  *
  * @return the data structure for the problem
@@ -406,17 +405,14 @@ void HVSsolveNum2D(
     hvs->result = setS;
 }
 
-/** calculates the hypervolume contribution of a point given a set
+/** Calculates the nondominated points using the dichotomic scheme 
  *
- *  @note There are 3 solving types, \ref HVS_ALL that calculates all optimal points,
- *        \ref HVS_TIME that calculates points whithin a time limit and  \ref HVS_NUM
- *        that calculates a set number of points.
- *
- *  @return The set of optimal points calculated depending on the solving type
+ *  @note There are 2 solving types, \ref HVS_ALL that calculates all optimal points
+ *         and \ref HVS_NUM that calculates a set number of points.
  */
 void HVSsolve(
-        int             solvingType,/**< Solving type for the problem */
-        HVS       *hvs       /**< Default framework data structure */
+        HVS      *hvs,       /**< Default framework data structure */
+        int      solvingType /**< Solving method for the problem */        
 ){
     if(hvs->input != nullptr){
         hvs->input(hvs);

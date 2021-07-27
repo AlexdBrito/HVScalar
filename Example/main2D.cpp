@@ -1,4 +1,4 @@
-#include "framework.h"
+#include "hvscalar.h"
 
 struct problemVariables {
     int numElems;                                 /**< Number of elements for each objective */
@@ -266,7 +266,6 @@ SCIP_RETCODE closeProblem(HVS *hvs) {
 int main(int argc, const char *argv[]) {
 
     HVS *hvs;
-
     HVSstart(&hvs);
 
     HVSsetInput(hvs, readInput);
@@ -276,7 +275,7 @@ int main(int argc, const char *argv[]) {
     HVSsetNumNdPoints(hvs, 5);
     HVSsetVerbose(hvs, true);
     HVSsetDataStructure(hvs, new problemVariables());
-    HVSsolve(HVS_2D_NUM, hvs);
+    HVSsolve(hvs, HVS_2D_NUM);
     HVS_Set results = HVSgetSols(hvs);
     HVSprintSet(results);
 
