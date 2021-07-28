@@ -1,6 +1,6 @@
 # HVScalar: A C++ Dichotomic Search Framework for Solving Biobjective Combinatorial Optimization Problems
 
-This repository contains a C++ framework that implements a dichotomic search algorithm to solve any biobjective combinatorial optimization problem that can be formulated in terms of hypervolume scalarization as described in [2](#note). It is capable of finding the complete set of nondominated points or a subset of it with an approximation guarantee. In the latter case, the size of the subset must be defined by the user. The framework allows to use [SCIP Optimization Suite](https:scipopt.org/#scipoptsuite)(version 7 only) as a MILP solver for each hypervolume scalarization problem, but it can also use a dedicated algorithm, with some more effort. This work is based on Alexandre Brito's Master Thesis [1](#note).
+This repository contains a C++ framework that implements a dichotomic search algorithm to solve any biobjective combinatorial optimization problem that can be formulated in terms of hypervolume scalarization as described in [[2](#note)]. It is capable of finding the complete set of nondominated points or a subset of it with an approximation guarantee. In the latter case, the size of the subset must be defined by the user. The framework allows to use [SCIP Optimization Suite](https:scipopt.org/#scipoptsuite)(version 7 only) as a MILP solver for each hypervolume scalarization problem, but it can also use a dedicated algorithm, with some more effort. This work is based on Alexandre Brito's Master Thesis [[1](#note)].
 
 ## Usage
 
@@ -258,7 +258,7 @@ void HVSprintSet(HVS_Set);
   <img src="Example/UserManual/FrameworkFlowDiagram.png">
 </p>
 
-A [`pdf` version of the user manual](Example/UserManual/UserManual.pdf) is also available.
+A [`pdf` version of the user manual](Docs/FrameworkFlowDiagram.png) is also available.
 
 ## Note
 
