@@ -255,10 +255,11 @@ void HVSprintSet(HVS_Set);
 9. Lastly, the function HVSfree(HVS) must be called to release all the frameworks variables.
 
 <p align="center">
-  <img src="Example/UserManual/FrameworkFlowDiagram.png">
+  <img src="Docs/FrameworkFlowDiagram.png">
 </p>
 
-A [`pdf` version of the user manual](Docs/FrameworkFlowDiagram.png) is also available.
+A [`pdf` version of the user manual](/Docs/UserManual.pdf) is also available.
+
 
 ## Note
 
