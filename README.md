@@ -1,6 +1,6 @@
 # HVScalar: A C++ Dichotomic Search Framework for Solving Biobjective Combinatorial Optimization Problems
 
-This repository contains a C++ framework that implements a dichotomic search algorithm to solve any biobjective combinatorial optimization problem that can be formulated in terms of hypervolume scalarization as described in [Paquete et al. 2021](https://doi.org/10.1016/j.cor.2021.105349). It is capable of finding the complete set of nondominated points or a subset of it with an approximation guarantee. In the latter case, the size of the subset must be defined by the user. The framework allows to use [SCIP Optimization Suite](https:scipopt.org/#scipoptsuite) as a MILP solver for each hypervolume scalarization problem, but it can also use a dedicated algorithm. This work is based on Alexandre Brito's Master Thesis, which is available [here](/Example/UserManual/Thesis_Alexandre_Brito_2021.pdf)
+This repository contains a C++ framework that implements a dichotomic search algorithm to solve any biobjective combinatorial optimization problem that can be formulated in terms of hypervolume scalarization as described in [2](#note). It is capable of finding the complete set of nondominated points or a subset of it with an approximation guarantee. In the latter case, the size of the subset must be defined by the user. The framework allows to use [SCIP Optimization Suite](https:scipopt.org/#scipoptsuite)(version 7 only) as a MILP solver for each hypervolume scalarization problem, but it can also use a dedicated algorithm, with some more effort. This work is based on Alexandre Brito's Master Thesis [1](#note).
 
 ## Usage
 
@@ -8,15 +8,15 @@ The framework is currently provided as a single header file. In order to use it,
 
 For an implementation example for a biobjective knapsack problem with a cardinality constraint, see the [Example](/Example) folder. An input example and the expected output are also provided. The example can be compiled with:
 ```
-g++ Example/example.cpp Code/hvscalar.h -lscip -lpthread -std=c++14 -o hvscalar.out
+g++ Example/example.cpp Code/hvscalar.h -lscip -std=c++14 -o hvscalar.out
 ./hvscalar.out < Example/example.in
 ```
 
 ## Overview of Available Functions
 
-The framework currently uses one structure, `HVS` to store all the necessary data. This structure holds information about all the user implemented functions and basic information about the problem such as the number of nondominated points to find, if set, the objective direction, either maximization or minimization, the initial reference point and the data structure created by the user. It is required as input by all the frameworks functions.
+The framework currently uses one structure, `HVS`, to store all the necessary data. This structure holds information about all the user implemented functions and basic information about the problem such as the number of nondominated points to find, if set, the objective direction, either maximization or minimization, the initial reference point and the data structure created by the user. It is required as input by all the framework functions.
 
-We consider the following variables
+We consider the following constants and variables
 
 ```cpp
 #define HVS_Eps     1e-8                 /**< Epsilon value */
@@ -65,7 +65,7 @@ void HVSfree(HVS);
  * 
  *  Parameters:
  *    HVS   - An initialized HVS data structure
- *    input - User implemented function that reads the problems input
+ *    input - User implemented function that reads the problem input
  */ 
 void HVSsetInput(HVS, input);
 ```
@@ -73,7 +73,7 @@ void HVSsetInput(HVS, input);
 ### HVSsetInit
 
 ```cpp
-/** Sets the user built function that initiates the problem and perform necessary pre-calculations
+/** Sets the user built function that initiates the problem and performs the necessary pre-calculations
  *  
  *  Parameters:
  *    HVS  - An initialized HVS data structure
@@ -169,7 +169,7 @@ void HVSsetVerbose(HVS, verbose);
 ### HVSgetIRefPoint
 
 ```cpp
-/** Obtain the current initial reference point
+/** Obtains the current initial reference point
  * 
  *  Parameters:
  *    HVS - An initialized HVS data structure
@@ -183,7 +183,7 @@ HVS_Point HVSgetIRefPoint(HVS);
 ### HVSgetDataStructure
 
 ```cpp
-/** Obtain the data structure of the problem.
+/** Obtains the data structure of the problem.
  * 
  *  Parameters:
  *    HVS   - An initialized HVS data structure
@@ -212,7 +212,7 @@ void HVSsolve(HVS, HVS_SolveType);
 ### HVSgetSols
 
 ```cpp
-/** Obtain the set of solutions of the dichotomic scheme
+/** Obtains the set of solutions of the dichotomic scheme
  * 
  *  Parameters:
  *    HVS - An initialized HVS data structure
@@ -236,7 +236,7 @@ void HVSprintSet(HVS_Set);
 
 ## Implementing steps
 
-1. Implement functions input, init, solve and close. These functions are responsible for reading all the inputs necessary, initializing the problem, solving an instance of the problem and freeing all the resources allocated to the problem, respectively.
+1. Implement functions input, init, solve and close. These functions are responsible for reading all the necessary inputs, initializing the problem, solving an instance of the problem and freeing all the resources allocated to the problem, respectively.
 
 2. If additional variables are needed in order to solve a subproblem, excluding the reference point, create a data structure that holds all the required variables associated to the implemented problem.
 
@@ -250,7 +250,7 @@ void HVSprintSet(HVS_Set);
 
 7. With all necessary variables set, function HVSsolve(HVS, HVS_SolveType) should be called. This will run the method chosen.
 
-8. The results can be obtained by using function HVSgetSols(HVS), which returns a HVS_Set, and displayed using function HVSprintSet(HVS_Set).
+8. The results can be Obtainsed by using function HVSgetSols(HVS), which returns a HVS_Set, and displayed using function HVSprintSet(HVS_Set).
 
 9. Lastly, the function HVSfree(HVS) must be called to release all the frameworks variables.
 
@@ -264,12 +264,12 @@ A [`pdf` version of the user manual](Example/UserManual/UserManual.pdf) is also 
 
 If you plan to write a scientific paper describing research that made use of this program, I kindly ask you to mention that this software was used. The appropriate citation is:
 
-Alexandre Brito, An hypervolume dichotomic scheme for multiobjective optimization, MSc in Informatics Engineering, University of Coimbra, Portugal, 2021.
+[1] Alexandre Brito, [An hypervolume dichotomic scheme for multiobjective optimization](/Docs/Thesis_Alexandre_Brito_2021.pdf), MSc in Informatics Engineering, University of Coimbra, Portugal, 2021.
 
 as well as
 
-Luís Paquete, Britta Schulze, Michael Stiglmayr, and Ana C. Lourenço, Computing representations with hypervolume scalarizations, Computers & Operations Research, 2021
-[DOI](http://doi.org/10.1016/j.cor.2021.105349).
+[2] Luís Paquete, Britta Schulze, Michael Stiglmayr, and Ana C. Lourenço, Computing representations with hypervolume scalarizations, Computers & Operations Research, 2021
+([DOI](http://doi.org/10.1016/j.cor.2021.105349)).
 
 I would also appreciate it if you would email adbrito@student.dei.uc.pt and paquete@dei.uc.pt with citations of papers referencing this work.
 
